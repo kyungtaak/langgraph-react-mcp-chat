@@ -34,7 +34,7 @@
 1. 저장소 복제하기
 
 ```bash
-git clone https://github.com/yourusername/langgraph-react-mcp-chat.git
+git clone https://github.com/teddynote-lab/langgraph-react-mcp-chat.git
 cd langgraph-react-mcp-chat
 ```
 
