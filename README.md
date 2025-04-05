@@ -142,21 +142,28 @@ langgraph dev
 
 ## teddyflow.com 연결 방법
 
+
 1. 먼저, 터미널에서 `langgraph dev` 명령어를 실행하여 개발 서버를 시작합니다.
-2. "새로운 앱 연결" 버튼을 클릭합니다.
+2. teddyflow.com 에서 회원가입을 합니다.
+
+회원가입시 "베타 키" 에 `teddynote-youtube` 를 입력하면 승인 없이 바로 가입이 가능합니다.
+
+![teddyflow-code](./assets/teddyflow-code.png)
+
+3. 로그인 후 "새로운 앱 연결" 버튼을 클릭합니다.
 
 ![teddyflow-guide-01](./assets/teddyflow-guide-01.png)
 
-3. 앱 이름을 입력하고 "연결" 버튼을 클릭합니다.
-4. 탭에서 "LangGraph" 를 선택한 뒤 다음의 정보를 입력합니다.
+4. 앱 이름을 입력하고 "연결" 버튼을 클릭합니다.
+5. 탭에서 "LangGraph" 를 선택한 뒤 다음의 정보를 입력합니다.
 - Endpoint: `http://localhost:2024`
 - Graph: `agent`
 
 ![teddyflow-guide-02](./assets/teddyflow-guide-02.png)
 
-5. 연결 설정이 완료되면 "저장" 버튼을 클릭합니다.
+6. 연결 설정이 완료되면 "저장" 버튼을 클릭합니다.
 
-6. "앱 연결하기" 버튼을 눌러 저장합니다.
+7. "앱 연결하기" 버튼을 눌러 저장합니다.
 
 ## 회사명 / 커뮤니티 로고 및 브랜딩 적용
 
