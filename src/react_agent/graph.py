@@ -13,22 +13,56 @@ from react_agent import utils
 from contextlib import asynccontextmanager
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnableConfig
 
 
 memory = MemorySaver()
+mcp_client = None
+mcp_tools = None
+
+
+async def initialize_mcp_client(config: RunnableConfig) -> None:
+    """Initialize the MCP client with the given configuration."""
+    global mcp_client, mcp_tools
+    if mcp_client is None:
+        configuration = Configuration.from_runnable_config(config)
+        mcp_json_path = configuration.mcp_tools
+        mcp_tools_config = await utils.load_mcp_config_json(mcp_json_path)
+        mcp_tools = mcp_tools_config.get("mcpServers", {})
+        mcp_client = MultiServerMCPClient(mcp_tools)
+        await mcp_client.__aenter__()
+
+
+async def cleanup_mcp_client() -> None:
+    """Clean up the MCP client."""
+    global mcp_client
+    if mcp_client is not None:
+        await mcp_client.__aexit__(None, None, None)
+        mcp_client = None
 
 
 @asynccontextmanager
 async def make_graph(mcp_tools: Dict[str, Dict[str, str]]):
-    async with MultiServerMCPClient(mcp_tools) as client:
-        model = ChatAnthropic(
-            model="claude-3-7-sonnet-latest", temperature=0.0, max_tokens=64000
+    try:
+        # Get tools and truncate their descriptions
+        tools = mcp_client.get_tools()
+        for tool in tools:
+            if hasattr(tool, 'description') and tool.description:
+                tool.description = tool.description[:1024]
+        
+        model = ChatOpenAI(
+            base_url="https://api.platform.a15t.com/v1",
+            model="azure/openai/gpt-4o-2024-11-20-gs",
+            temperature=0.0,
+            max_tokens=16384,
         )
-        agent = create_react_agent(model, client.get_tools(), checkpointer=memory)
+        agent = create_react_agent(model, tools, checkpointer=memory)
         yield agent
+    except Exception as e:
+        print(f"Error in make_graph: {e}")
+        raise
 
 
 async def call_model(
@@ -52,13 +86,8 @@ async def call_model(
         system_time=datetime.now(tz=timezone.utc).isoformat()
     )
 
-    mcp_json_path = configuration.mcp_tools
-
-    mcp_tools_config = await utils.load_mcp_config_json(mcp_json_path)
-
-    # Extract the servers configuration from mcpServers key
-    mcp_tools = mcp_tools_config.get("mcpServers", {})
-    print(mcp_tools)
+    # Initialize MCP client if not already initialized
+    await initialize_mcp_client(config)
 
     response = None
 

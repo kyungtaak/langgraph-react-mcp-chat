@@ -30,6 +30,7 @@ async def load_mcp_config_json(filepath: str = "mcp_config.json") -> Dict[str, A
     3. For each server in mcpServers that doesn't already have a transport field:
        - Adds "transport": "stdio" if the command is "npx"
        - Adds "transport": "sse" otherwise
+    4. Truncates tool descriptions to 1024 characters to comply with OpenAI's limits
 
     Returns:
         Dict[str, Any]: The processed configuration dictionary
@@ -43,7 +44,6 @@ async def load_mcp_config_json(filepath: str = "mcp_config.json") -> Dict[str, A
 
     try:
         # Load the JSON file asynchronously using aiofiles
-
         async with aiofiles.open(config_path, "r") as f:
             content = await f.read()
             config = json.loads(content)
@@ -56,11 +56,14 @@ async def load_mcp_config_json(filepath: str = "mcp_config.json") -> Dict[str, A
                     continue
 
                 # Add the appropriate transport based on the command
-                # command 파라미터가 없는 경우 무시하고 기본값으로 "sse" 사용
                 if "command" in server_config and server_config["command"] == "npx":
                     server_config["transport"] = "stdio"
                 else:
                     server_config["transport"] = "sse"
+
+                # Truncate tool descriptions to 1024 characters
+                if "description" in server_config:
+                    server_config["description"] = server_config["description"][:1024]
 
         return config
     except FileNotFoundError:
